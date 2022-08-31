@@ -71,6 +71,20 @@ import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 实现。如果有需要更新，删除，插入等操作，该操作是需要通过DbSqlSession来实现的，<br/>
+ * 而实际上该实现会将这些操作缓存在内部。只有在执行flush方法时才会真正的提交到数据库去执行。<br/>
+ * 正是因为如此，所有的数据操作，实际上最终都是要等到{@link org.activiti.engine.impl.interceptor.CommandContext } 执行close方法时，才会真正提到到数据库。<br/>
+ *
+ * <p>
+ *  当DbSqlSession执行flush方法时，主要来说是做了数据提交动作 <br/>
+ *
+ * 1. 将insertObjects列表中的元素插入到数据库 <br/>
+ * 2. 将deleteOperations列表中的元素遍历执行 <br/>
+ * 3. 执行方法getUpdatedObjects获得要更新的实体对象 <br/>
+ * <p/>
+ *
+ */
 public class DbSqlSession implements Session {
 
     private static final Logger log = LoggerFactory.getLogger(DbSqlSession.class);
@@ -148,10 +162,19 @@ public class DbSqlSession implements Session {
     protected DbSqlSessionFactory dbSqlSessionFactory;
     protected EntityCache entityCache;
 
+    /**
+     * 该属性存储着所有使用insert方法放入的对象
+     */
     protected Map<Class<? extends Entity>, Map<String, Entity>> insertedObjects
             = new HashMap<Class<? extends Entity>, Map<String, Entity>>();
+    /**
+     * 该Map结构内存储所有通过该DbSqlSession查询出来的结果，以及update方法放入的对象
+     */
     protected Map<Class<? extends Entity>, Map<String, Entity>> deletedObjects
             = new HashMap<Class<? extends Entity>, Map<String, Entity>>();
+    /**
+     * 该属性内存储着所有将要执行的删除操作
+     */
     protected Map<Class<? extends Entity>, List<BulkDeleteOperation>> bulkDeleteOperations
             = new HashMap<Class<? extends Entity>, List<BulkDeleteOperation>>();
     protected List<Entity> updatedObjects = new ArrayList<Entity>();

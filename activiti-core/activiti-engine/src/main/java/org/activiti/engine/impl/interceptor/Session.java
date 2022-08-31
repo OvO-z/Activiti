@@ -19,7 +19,8 @@ package org.activiti.engine.impl.interceptor;
 import org.activiti.engine.api.internal.Internal;
 
 /**
-
+ * Activiti的持久化机制简单说来就是数据集中提交。
+ * 实例对象由 {@link org.activiti.engine.impl.interceptor.SessionFactory} 实现
  */
 @Internal
 public interface Session {
